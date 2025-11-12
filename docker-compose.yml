@@ -1,0 +1,167 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=admin
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  orderservice-api:
+    build:
+      context: .
+      dockerfile: src/API/OrderService.API/Dockerfile
+    container_name: orderservice-api
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__MongoDB=mongodb://mongodb:27017
+      - ConnectionStrings__SqlServer=Server=sqlserver,1433;Database=OrderServiceReadDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=OrderServiceSagaDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;
+      - ConnectionStrings__Redis=redis:6379
+      - Services__ProductService=http://productservice-api:80
+      - Services__UserService=http://userservice-api:80
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__VHost=/
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  userservice-api:
+    build:
+      context: .
+      dockerfile: src/API/UserService.API/Dockerfile
+    container_name: userservice-api
+    ports:
+      - "5003:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__MongoDB=mongodb://mongodb:27017
+      - ConnectionStrings__SqlServer=Server=sqlserver,1433;Database=UserServiceReadDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+
+  productservice-api:
+    build:
+      context: .
+      dockerfile: src/API/ProductService.API/Dockerfile
+    container_name: productservice-api
+    ports:
+      - "5002:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__MongoDB=mongodb://mongodb:27017
+      - ConnectionStrings__SqlServer=Server=sqlserver,1433;Database=ProductServiceReadDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+
+  gateway-api:
+    build:
+      context: .
+      dockerfile: src/API/Gateway.API/Dockerfile
+    container_name: gateway-api
+    ports:
+      - "5001:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ReverseProxy__Clusters__orders-cluster__Destinations__destination1__Address=http://orderservice-api:80
+      - ReverseProxy__Clusters__products-cluster__Destinations__destination1__Address=http://productservice-api:80
+      - ReverseProxy__Clusters__users-cluster__Destinations__destination1__Address=http://userservice-api:80
+    depends_on:
+      - orderservice-api
+      - userservice-api
+      - productservice-api
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: src/Services/OrderService.Orchestrator/Dockerfile
+    container_name: order-orchestrator
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=OrderServiceSagaDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__VHost=/
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  sqlserver_data:
+  rabbitmq_data:
+  redis_data:
+  mongodb_data:
+

@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Shared.csproj" />
+    <ProjectReference Include="..\..\..\OpenSleigh\src\OpenSleigh\OpenSleigh.csproj" />
+    <ProjectReference Include="..\..\..\OpenSleigh\src\OpenSleigh.Persistence.SQL\OpenSleigh.Persistence.SQL.csproj" />
+    <ProjectReference Include="..\..\..\OpenSleigh\src\OpenSleigh.Persistence.SQLServer\OpenSleigh.Persistence.SQLServer.csproj" />
+    <ProjectReference Include="..\..\..\OpenSleigh\src\OpenSleigh.Transport.RabbitMQ\OpenSleigh.Transport.RabbitMQ.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
+

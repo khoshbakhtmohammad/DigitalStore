@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Application\OrderService.Application\OrderService.Application.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\OrderService.Infrastructure\OrderService.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Shared\Shared.csproj" />
+    <ProjectReference Include="..\..\..\OpenSleigh\src\OpenSleigh\OpenSleigh.csproj" />
+    <ProjectReference Include="..\..\..\OpenSleigh\src\OpenSleigh.Persistence.SQL\OpenSleigh.Persistence.SQL.csproj" />
+    <ProjectReference Include="..\..\..\OpenSleigh\src\OpenSleigh.Persistence.SQLServer\OpenSleigh.Persistence.SQLServer.csproj" />
+    <ProjectReference Include="..\..\..\OpenSleigh\src\OpenSleigh.Transport.RabbitMQ\OpenSleigh.Transport.RabbitMQ.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.57.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
+
