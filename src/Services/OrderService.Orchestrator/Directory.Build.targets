@@ -1,0 +1,8 @@
+<Project>
+  <Target Name="ExcludeReadmeFromPublish" AfterTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(ResolvedFileToPublish.DestinationSubPath)' == 'README.md' OR '%(ResolvedFileToPublish.RelativePath)' == 'README.md'" />
+    </ItemGroup>
+  </Target>
+</Project>
+

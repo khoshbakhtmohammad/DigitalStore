@@ -14,7 +14,7 @@ public class ProductReadDbContext : DbContext
     {
         modelBuilder.Entity<ProductReadModel>(entity =>
         {
-            entity.ToTable("Products");
+            entity.ToTable("Products", "dbo");
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Name);
             entity.Property(e => e.Name).HasMaxLength(500).IsRequired();

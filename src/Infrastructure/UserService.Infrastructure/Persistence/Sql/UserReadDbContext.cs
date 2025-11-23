@@ -14,7 +14,7 @@ public class UserReadDbContext : DbContext
     {
         modelBuilder.Entity<UserReadModel>(entity =>
         {
-            entity.ToTable("Users");
+            entity.ToTable("Users", "dbo");
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Email).IsUnique();
             entity.Property(e => e.Email).HasMaxLength(255).IsRequired();

@@ -15,7 +15,7 @@ public class OrderReadDbContext : DbContext
     {
         modelBuilder.Entity<OrderReadModel>(entity =>
         {
-            entity.ToTable("Orders");
+            entity.ToTable("Orders", "dbo");
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.CustomerId);
             entity.HasMany(e => e.Items)
@@ -26,7 +26,7 @@ public class OrderReadDbContext : DbContext
 
         modelBuilder.Entity<OrderItemReadModel>(entity =>
         {
-            entity.ToTable("OrderItems");
+            entity.ToTable("OrderItems", "dbo");
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.OrderId);
             entity.HasIndex(e => e.ProductId);
